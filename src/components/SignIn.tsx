@@ -5,12 +5,14 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import Loader from "@/utils/Loader";
+import { useNavigate } from 'react-router-dom'
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const[email , setEmail] = useState("");
   const[password , setPassword] = useState("");
   const[loading , setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSignIn() {
     try {
@@ -30,6 +32,7 @@ export default function SignIn() {
         setEmail("");
         setPassword("");
         setLoading(false);
+        navigate("/");
       }
 
     } catch (error) {

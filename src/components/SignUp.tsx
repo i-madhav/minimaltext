@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useNavigate } from "react-router-dom";
 import Loader from "@/utils/Loader";
 
 export default function SignUp() {
@@ -22,6 +23,7 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSignUp() {
     try {
@@ -43,6 +45,7 @@ export default function SignUp() {
         setEmail("");
         setPassword("");
         setLoading(false);
+        navigate("/sign-in");
       }
     } catch (error) {
       setLoading(false);
@@ -166,22 +169,24 @@ export default function SignUp() {
             <Button
               className="w-full h-12 flex items-center justify-center"
               disabled={!isChecked}
-              onClick={handleSignUp}>
+              onClick={handleSignUp}
+            >
               <Loader />
             </Button>
           ) : (
             <Button
               className="w-full h-12"
               disabled={!isChecked}
-              onClick={handleSignUp}>
+              onClick={handleSignUp}
+            >
               Sign Up
             </Button>
           )}
           <div className="text-sm text-center text-gray-500">
             Already have an account?{" "}
-            <a href="#" className="text-primary hover:underline">
+            <Link className="text-primary hover:underline" to={"/sign-in"}>
               Sign in
-            </a>
+            </Link>
           </div>
         </CardFooter>
       </Card>
