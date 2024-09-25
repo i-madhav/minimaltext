@@ -39,10 +39,8 @@ export default function SignUp() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log(data);
-        setFullName(" ");
-        setEmail(" ");
+        setFullName("");
+        setEmail("");
         setPassword("");
         setLoading(false);
       }

@@ -3,10 +3,40 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { EyeIcon, EyeOffIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import Loader from "@/utils/Loader";
 
 export default function SignIn() {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const[email , setEmail] = useState("");
+  const[password , setPassword] = useState("");
+  const[loading , setLoading] = useState(false);
+
+  async function handleSignIn() {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:8000/api/v1/user/signin",{
+        method:"POST",
+        headers:{
+          "Content-type":"application/json"
+        },
+        body:JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      if(response.ok){
+        setEmail("");
+        setPassword("");
+        setLoading(false);
+      }
+
+    } catch (error) {
+      console.log("Unable to signin user");
+      
+    }
+  }
 
   return (
     <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
@@ -25,7 +55,7 @@ export default function SignIn() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required />
+            <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -33,6 +63,8 @@ export default function SignIn() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
               <button
@@ -50,7 +82,19 @@ export default function SignIn() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button className="w-full">Sign In</Button>
+        {loading ? (
+            <Button
+              className="w-full h-12 flex items-center justify-center"
+              onClick={handleSignIn}>
+              <Loader />
+            </Button>
+          ) : (
+            <Button
+              className="w-full h-12"
+              onClick={handleSignIn}>
+              Sign Up
+            </Button>
+          )}
           <div className="text-sm text-center text-gray-500">
             Don't have an account?{" "}
             <a href="#" className="text-primary hover:underline">
