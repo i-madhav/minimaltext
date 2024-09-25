@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import Loader from "@/utils/Loader";
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
@@ -100,9 +100,9 @@ export default function SignIn() {
           )}
           <div className="text-sm text-center text-gray-500">
             Don't have an account?{" "}
-            <a href="#" className="text-primary hover:underline">
+            <Link className="text-primary hover:underline" to={"/sign-up"}>
               Sign up
-            </a>
+            </Link>
           </div>
         </CardFooter>
       </Card>
