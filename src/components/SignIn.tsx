@@ -101,7 +101,7 @@ export default function SignIn() {
           <div className="text-sm text-center text-gray-500">
             Don't have an account?{" "}
             <Link className="text-primary hover:underline" to={"/sign-up"}>
-              Sign up
+              Sign u
             </Link>
           </div>
         </CardFooter>
