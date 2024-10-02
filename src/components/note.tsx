@@ -2,6 +2,15 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
 
 export default function MinimalistNotepad(): JSX.Element {
   const [text, setText] = useState<string>("");
@@ -114,7 +123,7 @@ export default function MinimalistNotepad(): JSX.Element {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center ">
           <div className=" flex items-center space-x-5">
             <img src={pen} alt="pen" className="w-8 block" />
             <h1 className="text-lg font-bold text-gray-900">
@@ -122,7 +131,7 @@ export default function MinimalistNotepad(): JSX.Element {
             </h1>
           </div>
 
-          <div className=" plusandusercontainer flex items-center gap-10 mr-14">
+          <div className=" plusandusercontainer md:flex items-center hidden">
             <div className="relative">
               <button
                 className="p-2 bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -154,19 +163,44 @@ export default function MinimalistNotepad(): JSX.Element {
                 </div>
               )}
             </div>
+          </div>
 
-            <div className=" relative">
-                <div className=" bg-fuchsia-300 rounded-full py-2 px-4 text-center">
-                  <p className=" font-bold text-xl">G</p>
-                </div>
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="bg-black text-white py-1 px-2 rounded-lg font-medium">
+                Open
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white bg-opacity-70 backdrop-blur-lg rounded-lg shadow-lg">
+                <DropdownMenuLabel className="text-gray-700 font-semibold">
+                  Details
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-gray-300" />
+                <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
+                  <p className="font-medium text-gray-800">
+                    madhav.shar06ma@gmail.com
+                  </p>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
+                  <button className="font-medium text-red-600 hover:text-red-700">
+                    Sign-Out
+                  </button>
+                </DropdownMenuItem>
 
-                <div className="absolute user-information border-gray-800 bg-black text-white">
-                    <p>madhav.shar06ma@gmail.com</p>
-                    <button className=" bg-white text-black rounded-lg py-2 px-4">
-                      Sign Out
-                    </button>
-                </div>
-            </div>
+                <DropdownMenuSeparator className="bg-gray-300" />
+                <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
+                  <p className="font-medium text-gray-800">
+                    shared-with users: 2
+                  </p>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
+                  <ul>
+                    <li>madhav@gmail.com</li>
+                    <li>madhav.shar06ma@gmail.com</li>
+                  </ul>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
