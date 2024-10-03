@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
 
 export default function MinimalistNotepad(): JSX.Element {
   const [text, setText] = useState<string>("");
@@ -27,9 +26,7 @@ export default function MinimalistNotepad(): JSX.Element {
     } else {
       handleDocCreation();
     }
-    return () => {
-      socket.off("connect"); // Remove event listeners when component unmounts
-    };
+
   }, []);
 
   useEffect(() => {
@@ -131,8 +128,27 @@ export default function MinimalistNotepad(): JSX.Element {
             </h1>
           </div>
 
-          <div className=" plusandusercontainer md:flex items-center hidden">
-            <div className="relative">
+          <div className=" plusandusercontainer md:flex items-center gap-5 hidden">
+            <div>
+              <ul className=" flex items-center">
+                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full mr-[-.5rem] border-white border-[3px]">
+                  M
+                </li>
+                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
+                  M
+                </li>
+                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
+                  M
+                </li>
+                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
+                  M
+                </li>
+                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
+                  M
+                </li>
+              </ul>
+            </div>
+            <div className="">
               <button
                 className="p-2 bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 onClick={() => setIsPopoverOpen(!isPopoverOpen)}
@@ -162,6 +178,39 @@ export default function MinimalistNotepad(): JSX.Element {
                   </form>
                 </div>
               )}
+            </div>
+
+            <div className=" hidden md:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger className=" bg-black text-white rounded-full font-medium py-2 px-3">
+                  M
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className=" bg-white bg-opacity-70 backdrop-blur-lg rounded-lg shadow-xl">
+                  <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
+                    <p className="font-medium text-gray-800">
+                      madhav.shar06ma@gmail.com
+                    </p>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
+                    <button className="font-medium text-red-600 hover:text-red-700">
+                      Sign-Out
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-gray-300" />
+                  <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
+                    <p className="font-medium text-gray-800">
+                      shared-with users: 2
+                    </p>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
+                    <ul>
+                      <li>madhav@gmail.com</li>
+                      <li>madhav.shar06ma@gmail.com</li>
+                    </ul>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
