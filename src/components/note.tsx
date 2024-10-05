@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
@@ -10,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { UserInformation } from "@/utils/interfaces";
 
 export default function MinimalistNotepad(): JSX.Element {
   const [text, setText] = useState<string>("");
@@ -17,6 +19,19 @@ export default function MinimalistNotepad(): JSX.Element {
   const [newItemText, setNewItemText] = useState<string>("");
   const [items, setItems] = useState<string[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
+  const[userInformation , setUserInformation] = useState<UserInformation>({});
+  const navigate = useNavigate();
+  
+
+  useEffect(() => {
+    const checkIfUserLoggedIn = async () => {
+       await fetchUserInformation();
+
+       if(userInformation){
+        await
+       }
+    }
+  },[])
 
   useEffect(() => {
     const path = window.location.pathname.slice(1);
@@ -26,7 +41,6 @@ export default function MinimalistNotepad(): JSX.Element {
     } else {
       handleDocCreation();
     }
-
   }, []);
 
   useEffect(() => {
@@ -47,17 +61,6 @@ export default function MinimalistNotepad(): JSX.Element {
     }
   }, [text]);
 
-  const handleAddItem = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      if (newItemText.trim()) {
-        setItems((prevItems) => [...prevItems, newItemText.trim()]);
-        setNewItemText("");
-        setIsPopoverOpen(false);
-      }
-    },
-    [newItemText]
-  );
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -117,6 +120,37 @@ export default function MinimalistNotepad(): JSX.Element {
     }
   }
 
+  async function handleSignOut() {
+    console.log("I got clicked");
+    const response = await fetch("http://localhost:8000/api/v1/user/signout", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      credentials: "include",
+    });
+    if (response.ok) {
+      navigate("/sign-in");
+    }
+  }
+
+  async function fetchUserInformation (){
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/user/me",{
+        method:"GET",
+        headers:{ "Content-type": "application/json"},
+        credentials:'include'
+      });
+
+      if(response.ok){
+        const data = await response.json();
+        setUserInformation({id:data.data._id , email:data.data.email , fullName:data.data.fullName})
+      }
+    } catch (error) {
+      
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <header className="bg-white shadow-sm">
@@ -163,15 +197,13 @@ export default function MinimalistNotepad(): JSX.Element {
                       type="text"
                       placeholder="Add new item"
                       value={newItemText}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setNewItemText(e.target.value)
-                      }
+                      onChange={(e) => setNewItemText(e.target.value)}
                       aria-label="New item text"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                     />
                     <button
                       type="submit"
-                      className="w-full px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 bg-black text-white font-medium rounded-md hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
                     >
                       Add
                     </button>
@@ -192,7 +224,10 @@ export default function MinimalistNotepad(): JSX.Element {
                     </p>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
-                    <button className="font-medium text-red-600 hover:text-red-700">
+                    <button
+                      className="font-medium text-red-600 hover:text-red-700"
+                      onClick={() => handleSignOut()}
+                    >
                       Sign-Out
                     </button>
                   </DropdownMenuItem>
@@ -229,10 +264,8 @@ export default function MinimalistNotepad(): JSX.Element {
                     madhav.shar06ma@gmail.com
                   </p>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
-                  <button className="font-medium text-red-600 hover:text-red-700">
-                    Sign-Out
-                  </button>
+                <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70 font-medium text-red-600 hover:text-red-700">
+                  Sign-Out
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator className="bg-gray-300" />
@@ -258,9 +291,7 @@ export default function MinimalistNotepad(): JSX.Element {
         <textarea
           className="flex-grow p-4 bg-white font-mono text-sm focus:outline-none resize-none w-[95%] m-auto border border-black"
           value={text}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-            setText(e.target.value)
-          }
+          onChange={(e) => setText(e.target.value)}
           placeholder="Start typing here..."
           aria-label="Notepad content"
         />

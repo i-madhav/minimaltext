@@ -1,43 +1,49 @@
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Loader from "@/utils/Loader";
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
-  const[email , setEmail] = useState("");
-  const[password , setPassword] = useState("");
-  const[loading , setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   async function handleSignIn() {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8000/api/v1/user/signin",{
-        method:"POST",
-        headers:{
-          "Content-type":"application/json"
+      const response = await fetch("http://localhost:8000/api/v1/user/signin", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
         },
-        body:JSON.stringify({
+        credentials: "include",
+        body: JSON.stringify({
           email,
-          password
-        })
+          password,
+        }),
       });
 
-      if(response.ok){
+      if (response.ok) {
         setEmail("");
         setPassword("");
         setLoading(false);
         navigate("/");
       }
-
     } catch (error) {
       console.log("Unable to signin user");
-      
     }
   }
 
@@ -47,10 +53,14 @@ export default function SignIn() {
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-foreground">M</span>
+              <span className="text-2xl font-bold text-primary-foreground">
+                M
+              </span>
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Welcome back
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your email to sign in to your account
           </CardDescription>
@@ -58,7 +68,14 @@ export default function SignIn() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -68,6 +85,7 @@ export default function SignIn() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="minimalistic@123"
                 required
               />
               <button
@@ -85,27 +103,26 @@ export default function SignIn() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-        {loading ? (
+          {loading ? (
             <Button
               className="w-full h-12 flex items-center justify-center"
-              onClick={handleSignIn}>
+              onClick={handleSignIn}
+            >
               <Loader />
             </Button>
           ) : (
-            <Button
-              className="w-full h-12"
-              onClick={handleSignIn}>
-              Sign Up
+            <Button className="w-full h-12" onClick={handleSignIn}>
+              Sign In
             </Button>
           )}
           <div className="text-sm text-center text-gray-500">
             Don't have an account?{" "}
             <Link className="text-primary hover:underline" to={"/sign-up"}>
-              Sign u
+              Signup
             </Link>
           </div>
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
