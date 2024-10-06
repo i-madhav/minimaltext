@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
@@ -17,6 +17,7 @@ export default function MinimalistNotepad(): JSX.Element {
   const [text, setText] = useState<string>("");
   const [docid, setDocid] = useState<string>("");
   const [newItemText, setNewItemText] = useState<string>("");
+  const [shareWith , setShareWith] = useState<string[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
   const [userInformation, setUserInformation] = useState<UserInformation>({
     id: "",
@@ -44,10 +45,10 @@ export default function MinimalistNotepad(): JSX.Element {
 
     const timer = setTimeout(() => {
       checkifuserislogin();
-    },200)
-    return (() => {
+    }, 200);
+    return () => {
       clearTimeout(timer);
-    })
+    };
   }, []);
 
   useEffect(() => {
@@ -55,8 +56,8 @@ export default function MinimalistNotepad(): JSX.Element {
       const socketData = {
         id: docid,
         userid: userInformation.id,
-        content:text,
-        sharedWith:[]
+        content: text,
+        sharedWith: [],
       };
 
       socket.on("connection", () => {
@@ -193,6 +194,30 @@ export default function MinimalistNotepad(): JSX.Element {
     } catch (error) {}
   }
 
+  async function handleAddShareWith() {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/v1/document/sharedwith/add",
+        {
+          method: "POST",
+          headers: { "Content-type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            id: docid,
+            userid: userInformation.id,
+            shareWith: newItemText,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (data) {
+        console.log(data);
+      }
+    } catch (error) {
+      console.log("unable to add share with user");
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <header className="bg-white shadow-sm">
@@ -234,21 +259,30 @@ export default function MinimalistNotepad(): JSX.Element {
               </button>
               {isPopoverOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                  <form className="p-4 space-y-2">
+                  <form className="p-4 space-y-2 flex flex-col text-center">
                     <input
                       type="text"
-                      placeholder="Add new item"
+                      placeholder="ShareDocument With"
                       value={newItemText}
                       onChange={(e) => setNewItemText(e.target.value)}
-                      aria-label="New item text"
+                      aria-label="ShareDocument With"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                     />
-                    <button
-                      type="submit"
-                      className="w-full px-4 py-2 bg-black text-white font-medium rounded-md hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-                    >
-                      Add
-                    </button>
+                    {userInformation.id ? (
+                      <button
+                        className="w-full px-4 py-2 bg-black text-white font-medium rounded-md hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                        onClick={() => handleAddShareWith()}
+                      >
+                        Add
+                      </button>
+                    ) : (
+                      <Link
+                        className=" px-4 py-2 bg-black text-white font-medium rounded-md hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                        to={"/sign-in"}
+                      >
+                        SignIn
+                      </Link>
+                    )}
                   </form>
                 </div>
               )}
@@ -256,7 +290,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
             <div className=" hidden md:block">
               <DropdownMenu>
-                <DropdownMenuTrigger className=" bg-black text-white rounded-full font-medium py-2 px-3">
+                <DropdownMenuTrigger className=" bg-black text-white rounded-full font-medium w-10 h-10">
                   {userInformation.fullName?.slice(0, 1).toUpperCase() || "G"}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className=" bg-white bg-opacity-70 backdrop-blur-lg rounded-lg shadow-xl">
@@ -267,7 +301,7 @@ export default function MinimalistNotepad(): JSX.Element {
                   </DropdownMenuItem>
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <button
-                      className="font-medium text-red-600 hover:text-red-700"
+                      className="font-medium text-red-600 hover:text-red-700 w-full text-left"
                       onClick={() => handleSignOut()}
                     >
                       Sign-Out
