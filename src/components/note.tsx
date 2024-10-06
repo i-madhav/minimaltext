@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
@@ -17,38 +17,46 @@ export default function MinimalistNotepad(): JSX.Element {
   const [text, setText] = useState<string>("");
   const [docid, setDocid] = useState<string>("");
   const [newItemText, setNewItemText] = useState<string>("");
-  const [items, setItems] = useState<string[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
-  const[userInformation , setUserInformation] = useState<UserInformation>({});
+  const [userInformation, setUserInformation] = useState<UserInformation>({
+    id: "",
+    email: "",
+    fullName: "",
+  });
   const navigate = useNavigate();
-  
-
-  useEffect(() => {
-    const checkIfUserLoggedIn = async () => {
-       await fetchUserInformation();
-
-       if(userInformation){
-        await
-       }
-    }
-  },[])
 
   useEffect(() => {
     const path = window.location.pathname.slice(1);
-    if (path.length > 1) {
-      handleFetchData(path);
-      setDocid(path);
-    } else {
-      handleDocCreation();
-    }
+    const checkifuserislogin = async () => {
+      if (path.length > 0) {
+        await fetchUserInformation();
+        setDocid(path);
+        if (userInformation) {
+          await handleFetchData(path, userInformation.id);
+        }
+      } else {
+        await fetchUserInformation();
+        if (userInformation) {
+          await handleDocumentCreation(userInformation.id);
+        }
+      }
+    };
+
+    const timer = setTimeout(() => {
+      checkifuserislogin();
+    },200)
+    return (() => {
+      clearTimeout(timer);
+    })
   }, []);
 
   useEffect(() => {
     if (docid) {
-      handleDocumentUpdation(docid, text);
       const socketData = {
-        documentId: docid,
-        updatedData: text,
+        id: docid,
+        userid: userInformation.id,
+        content:text,
+        sharedWith:[]
       };
 
       socket.on("connection", () => {
@@ -61,62 +69,92 @@ export default function MinimalistNotepad(): JSX.Element {
     }
   }, [text]);
 
-
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
-  async function handleDocCreation() {
+  async function handleDocumentCreation(userid: string) {
     try {
-      const response = await fetch("http://localhost:8000/save", {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify({
-          id: "",
-          content: text,
-        }),
-      });
+      if (userid.length > 0) {
+        const response = await fetch(
+          "http://localhost:8000/api/v1/document/generate",
+          {
+            method: "POST",
+            headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+              id: "",
+              userid: userid,
+            }),
+          }
+        );
 
-      const data = await response.json();
-      if (data) {
-        const id = data.data._id;
-        setDocid(id);
-        window.history.pushState({}, "", `/${id}`);
+        const data = await response.json();
+        if (data) {
+          const id = data.data._id;
+          setDocid(id);
+          window.history.pushState({}, "", `/${id}`);
+        }
+      } else {
+        const response = await fetch(
+          "http://localhost:8000/api/v1/document/generate",
+          {
+            method: "POST",
+            headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+              id: "",
+              userid: "",
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (data) {
+          const id = data.data._id;
+          setDocid(id);
+          window.history.pushState({}, "", `/${id}`);
+        }
       }
     } catch (error) {
       console.log("Unable to create a document");
     }
   }
 
-  async function handleDocumentUpdation(id: string, updatedData: string) {
+  async function handleFetchData(docid: string, userid: string) {
     try {
-      const response = await fetch(`http://localhost:8000/save`, {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify({
-          id: id,
-          content: updatedData,
-        }),
-      });
+      if (userid.length > 0) {
+        const response = await fetch(
+          "http://localhost:8000/api/v1/document/fetch?type=LoggedInUser",
+          {
+            method: "POST",
+            headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+              id: docid,
+              userid: userid,
+            }),
+          }
+        );
 
-      const data = await response.json();
-      if (data.data.text === text) return;
-    } catch (error) {
-      console.log("Unable to update the document" + error);
-    }
-  }
+        const data = await response.json();
+        if (data) {
+          setText(data.data.content);
+        }
+      } else {
+        const response = await fetch(
+          "http://localhost:8000/api/v1/document/fetch?type=NonLoggedInUser",
+          {
+            method: "POST",
+            headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+              id: docid,
+            }),
+          }
+        );
 
-  async function handleFetchData(docid: string) {
-    try {
-      const response = await fetch(`http://localhost:8000/fetch/${docid}`);
-      const data = await response.json();
-      let stuff = data.data.text;
-      setText(stuff);
-      localStorage.setItem(`${docid}`, stuff);
+        const data = await response.json();
+        if (data) {
+          setText(data.data.content);
+        }
+      }
     } catch (error) {
-      console.log("unable to fetch data from the backend - " + error);
+      console.log("Unable to fetch document");
     }
   }
 
@@ -134,21 +172,25 @@ export default function MinimalistNotepad(): JSX.Element {
     }
   }
 
-  async function fetchUserInformation (){
+  async function fetchUserInformation() {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/user/me",{
-        method:"GET",
-        headers:{ "Content-type": "application/json"},
-        credentials:'include'
+      const response = await fetch("http://localhost:8000/api/v1/user/me", {
+        method: "GET",
+        headers: { "Content-type": "application/json" },
+        credentials: "include",
       });
 
-      if(response.ok){
+      if (response.ok) {
         const data = await response.json();
-        setUserInformation({id:data.data._id , email:data.data.email , fullName:data.data.fullName})
+        if (data) {
+          setUserInformation({
+            id: data.data._id || "",
+            email: data.data.email || "",
+            fullName: data.data.fullName || "",
+          });
+        }
       }
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   }
 
   return (
@@ -192,7 +234,7 @@ export default function MinimalistNotepad(): JSX.Element {
               </button>
               {isPopoverOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                  <form onSubmit={handleAddItem} className="p-4 space-y-2">
+                  <form className="p-4 space-y-2">
                     <input
                       type="text"
                       placeholder="Add new item"
@@ -215,12 +257,12 @@ export default function MinimalistNotepad(): JSX.Element {
             <div className=" hidden md:block">
               <DropdownMenu>
                 <DropdownMenuTrigger className=" bg-black text-white rounded-full font-medium py-2 px-3">
-                  M
+                  {userInformation.fullName?.slice(0, 1).toUpperCase() || "G"}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className=" bg-white bg-opacity-70 backdrop-blur-lg rounded-lg shadow-xl">
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <p className="font-medium text-gray-800">
-                      madhav.shar06ma@gmail.com
+                      {userInformation.email || "Guest-User"}
                     </p>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
