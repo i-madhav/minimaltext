@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
@@ -24,32 +24,24 @@ export default function MinimalistNotepad(): JSX.Element {
     email: "",
     fullName: "",
   });
+  
   const navigate = useNavigate();
 
   useEffect(() => {
     const path = window.location.pathname.slice(1);
-    const checkifuserislogin = async () => {
-      if (path.length > 0) {
-        await fetchUserInformation();
+    const checkIfUserIsLoggedIn = async () => {
+      await fetchUserInformation();
+      if (path) {
         setDocid(path);
-        if (userInformation) {
+        if (userInformation.id) {
           await handleFetchData(path, userInformation.id);
         }
       } else {
-        await fetchUserInformation();
-        if (userInformation) {
-          await handleDocumentCreation(userInformation.id);
-        }
+        await handleDocumentCreation(userInformation.id);
       }
     };
-
-    const timer = setTimeout(() => {
-      checkifuserislogin();
-    }, 200);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, []);
+    checkIfUserIsLoggedIn();
+  },[]);
 
   useEffect(() => {
     if (docid) {
@@ -59,16 +51,13 @@ export default function MinimalistNotepad(): JSX.Element {
         content: text,
         sharedWith: [],
       };
+      socket.emit("updatedDataFromTheClient", socketData);
 
-      socket.on("connection", () => {
-        socket.emit("updatedDataFromTheClient", socketData);
-      });
       socket.on("serverResponse", (res) => {
-        console.log("I ran insisde res");
-        console.log(res);
+        console.log("Received response:", res);
       });
     }
-  }, [text]);
+  },[text,docid]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -196,6 +185,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
   async function handleAddShareWith() {
     try {
+      console.log("I ran");
       const response = await fetch(
         "http://localhost:8000/api/v1/document/sharedwith/add",
         {
@@ -209,8 +199,9 @@ export default function MinimalistNotepad(): JSX.Element {
           }),
         }
       );
-      const data = await response.json();
-      if (data) {
+      if(response.ok){
+        setIsPopoverOpen(false);
+        const data = await response.json();
         console.log(data);
       }
     } catch (error) {
@@ -238,15 +229,6 @@ export default function MinimalistNotepad(): JSX.Element {
                 <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
                   M
                 </li>
-                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
-                  M
-                </li>
-                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
-                  M
-                </li>
-                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
-                  M
-                </li>
               </ul>
             </div>
             <div className="">
@@ -259,7 +241,7 @@ export default function MinimalistNotepad(): JSX.Element {
               </button>
               {isPopoverOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                  <form className="p-4 space-y-2 flex flex-col text-center">
+                  <div className="p-4 space-y-2 flex flex-col text-center">
                     <input
                       type="text"
                       placeholder="ShareDocument With"
@@ -283,7 +265,7 @@ export default function MinimalistNotepad(): JSX.Element {
                         SignIn
                       </Link>
                     )}
-                  </form>
+                  </div>
                 </div>
               )}
             </div>
@@ -380,5 +362,4 @@ export default function MinimalistNotepad(): JSX.Element {
         </div>
       </footer>
     </div>
-  );
-}
+  );}
