@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
@@ -24,7 +24,6 @@ export default function MinimalistNotepad(): JSX.Element {
     email: "",
     fullName: "",
   });
-  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -123,8 +122,11 @@ export default function MinimalistNotepad(): JSX.Element {
         );
 
         const data = await response.json();
+        console.log(data);
+        
         if (data) {
           setText(data.data.content);
+          setShareWith(data.data.sharedWith);
         }
       } else {
         const response = await fetch(
@@ -140,6 +142,8 @@ export default function MinimalistNotepad(): JSX.Element {
 
         const data = await response.json();
         if (data) {
+          console.log(" I am inside fetch Data");
+          console.log(data);
           setText(data.data.content);
         }
       }
@@ -202,7 +206,7 @@ export default function MinimalistNotepad(): JSX.Element {
       if(response.ok){
         setIsPopoverOpen(false);
         const data = await response.json();
-        console.log(data);
+        setShareWith(data.data.sharedWith);
       }
     } catch (error) {
       console.log("unable to add share with user");
@@ -223,12 +227,9 @@ export default function MinimalistNotepad(): JSX.Element {
           <div className=" plusandusercontainer md:flex items-center gap-5 hidden">
             <div>
               <ul className=" flex items-center">
-                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full mr-[-.5rem] border-white border-[3px]">
-                  M
-                </li>
-                <li className=" bg-black text-white font-bold py-2 px-3 rounded-full  mr-[-.5rem] border-white border-[3px]">
-                  M
-                </li>
+                {shareWith.length > 0 ? shareWith.map((item) =>  <li className=" bg-black text-white font-bold py-2 px-3 rounded-full mr-[-.5rem] border-white border-[3px]">
+                  {item?.slice(0 , 1).toUpperCase()}
+                </li>) : "No Share"}
               </ul>
             </div>
             <div className="">
@@ -237,7 +238,7 @@ export default function MinimalistNotepad(): JSX.Element {
                 onClick={() => setIsPopoverOpen(!isPopoverOpen)}
                 aria-label="Add new item"
               >
-                <Plus className="h-4 w-4 text-gray-500" />
+              <Plus className="h-4 w-4 text-gray-500" />
               </button>
               {isPopoverOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-md shadow-lg z-10">
@@ -282,24 +283,29 @@ export default function MinimalistNotepad(): JSX.Element {
                     </p>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
-                    <button
+                    {!userInformation.email ? <Link
+                      className="font-medium hover:text-red-700 w-full text-left"
+                      to={"/sign-in"}
+                    >
+                      Sign-In
+                    </Link> : <button
                       className="font-medium text-red-600 hover:text-red-700 w-full text-left"
                       onClick={() => handleSignOut()}
                     >
                       Sign-Out
-                    </button>
+                    </button>}
+                    
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-300" />
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <p className="font-medium text-gray-800">
-                      shared-with users: 2
+                      shared-with users: {shareWith.length}
                     </p>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <ul>
-                      <li>madhav@gmail.com</li>
-                      <li>madhav.shar06ma@gmail.com</li>
+                      {shareWith.map((item) =><li>{item}</li> )}
                     </ul>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
