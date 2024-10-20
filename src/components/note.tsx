@@ -85,7 +85,7 @@ export default function MinimalistNotepad(): JSX.Element {
         }
       } else {
         const response = await fetch(
-          "http://localhost:8000/api/v1/document/generate",
+          "https://minimalisticbackend.onrender.com/api/v1/document/generate",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
