@@ -12,8 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { UserInformation } from "@/utils/interfaces";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MinimalistNotepad(): JSX.Element {
+  const {toast} = useToast();
   const [text, setText] = useState<string>("");
   const [docid, setDocid] = useState<string>("");
   const [newItemText, setNewItemText] = useState<string>("");
@@ -121,12 +123,18 @@ export default function MinimalistNotepad(): JSX.Element {
           }
         );
 
-        const data = await response.json();
+        if(response.ok){
+          const data = await response.json();
         console.log(data);
-        
         if (data) {
           setText(data.data.content);
           setShareWith(data.data.sharedWith);
+        }
+        }else{
+          toast({
+            title:"Permission Denied",
+            description:"You Do not have permission to access this document"
+          })
         }
       } else {
         const response = await fetch(
@@ -142,8 +150,6 @@ export default function MinimalistNotepad(): JSX.Element {
 
         const data = await response.json();
         if (data) {
-          console.log(" I am inside fetch Data");
-          console.log(data);
           setText(data.data.content);
         }
       }
@@ -207,9 +213,19 @@ export default function MinimalistNotepad(): JSX.Element {
         setIsPopoverOpen(false);
         const data = await response.json();
         setShareWith(data.data.sharedWith);
+        setNewItemText(" ");
+        setIsPopoverOpen(false);
+      }else{
+        setNewItemText(" ");
+        setIsPopoverOpen(false);
+        toast({
+          title:"Not Registered User",
+          description:"Please make sure the user you are adding is a registred user"
+        })
       }
     } catch (error) {
       console.log("unable to add share with user");
+      
     }
   }
 
