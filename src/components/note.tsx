@@ -133,7 +133,7 @@ export default function MinimalistNotepad(): JSX.Element {
         }else{
           toast({
             title:"Permission Denied",
-            description:"You Do not have permission to access this document"
+            description:"You Do not have permission to access"
           })
         }
       } else {
@@ -174,7 +174,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
   async function fetchUserInformation() {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/user/me", {
+      const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/me", {
         method: "GET",
         headers: { "Content-type": "application/json" },
         credentials: "include",

@@ -24,7 +24,7 @@ export default function SignIn() {
   async function handleSignIn() {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8000/api/v1/user/signin", {
+      const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/signin", {
         method: "POST",
         headers: {
           "Content-type": "application/json",
