@@ -15,11 +15,11 @@ import { UserInformation } from "@/utils/interfaces";
 import { useToast } from "@/hooks/use-toast";
 
 export default function MinimalistNotepad(): JSX.Element {
-  const {toast} = useToast();
+  const { toast } = useToast();
   const [text, setText] = useState<string>("");
   const [docid, setDocid] = useState<string>("");
   const [newItemText, setNewItemText] = useState<string>("");
-  const [shareWith , setShareWith] = useState<string[]>([]);
+  const [shareWith, setShareWith] = useState<string[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
   const [userInformation, setUserInformation] = useState<UserInformation>({
     id: "",
@@ -34,15 +34,13 @@ export default function MinimalistNotepad(): JSX.Element {
       await fetchUserInformation();
       if (path) {
         setDocid(path);
-        if (userInformation.id) {
-          await handleFetchData(path, userInformation.id);
-        }
+        handleFetchData(path, userInformation.id);
       } else {
-        await handleDocumentCreation(userInformation.id);
+        handleDocumentCreation(userInformation.id);
       }
     };
     checkIfUserIsLoggedIn();
-  },[]);
+  }, []);
 
   useEffect(() => {
     if (docid) {
@@ -58,7 +56,7 @@ export default function MinimalistNotepad(): JSX.Element {
         console.log("Received response:", res);
       });
     }
-  },[text,docid]);
+  }, [text, docid]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -123,18 +121,18 @@ export default function MinimalistNotepad(): JSX.Element {
           }
         );
 
-        if(response.ok){
+        if (response.ok) {
           const data = await response.json();
-        console.log(data);
-        if (data) {
-          setText(data.data.content);
-          setShareWith(data.data.sharedWith);
-        }
-        }else{
+          console.log(data);
+          if (data) {
+            setText(data.data.content);
+            setShareWith(data.data.sharedWith);
+          }
+        } else {
           toast({
-            title:"Permission Denied",
-            description:"You Do not have permission to access"
-          })
+            title: "Permission Denied",
+            description: "You Do not have permission to access",
+          });
         }
       } else {
         const response = await fetch(
@@ -160,13 +158,16 @@ export default function MinimalistNotepad(): JSX.Element {
 
   async function handleSignOut() {
     console.log("I got clicked");
-    const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/signout", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      credentials: "include",
-    });
+    const response = await fetch(
+      "https://minimalisticbackend.onrender.com/api/v1/user/signout",
+      {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
     if (response.ok) {
       navigate("/sign-in");
     }
@@ -174,11 +175,14 @@ export default function MinimalistNotepad(): JSX.Element {
 
   async function fetchUserInformation() {
     try {
-      const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/me", {
-        method: "GET",
-        headers: { "Content-type": "application/json" },
-        credentials: "include",
-      });
+      const response = await fetch(
+        "https://minimalisticbackend.onrender.com/api/v1/user/me",
+        {
+          method: "GET",
+          headers: { "Content-type": "application/json" },
+          credentials: "include",
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -209,23 +213,23 @@ export default function MinimalistNotepad(): JSX.Element {
           }),
         }
       );
-      if(response.ok){
+      if (response.ok) {
         setIsPopoverOpen(false);
         const data = await response.json();
         setShareWith(data.data.sharedWith);
         setNewItemText(" ");
         setIsPopoverOpen(false);
-      }else{
+      } else {
         setNewItemText(" ");
         setIsPopoverOpen(false);
         toast({
-          title:"Not Registered User",
-          description:"Please make sure the user you are adding is a registred user"
-        })
+          title: "Not Registered User",
+          description:
+            "Please make sure the user you are adding is a registred user",
+        });
       }
     } catch (error) {
       console.log("unable to add share with user");
-      
     }
   }
 
@@ -243,9 +247,13 @@ export default function MinimalistNotepad(): JSX.Element {
           <div className=" plusandusercontainer md:flex items-center gap-5 hidden">
             <div>
               <ul className=" flex items-center">
-                {shareWith.length > 0 ? shareWith.map((item) =>  <li className=" bg-black text-white font-bold py-2 px-3 rounded-full mr-[-.5rem] border-white border-[3px]">
-                  {item?.slice(0 , 1).toUpperCase()}
-                </li>) : "No Share"}
+                {shareWith.length > 0
+                  ? shareWith.map((item) => (
+                      <li className=" bg-black text-white font-bold py-2 px-3 rounded-full mr-[-.5rem] border-white border-[3px]">
+                        {item?.slice(0, 1).toUpperCase()}
+                      </li>
+                    ))
+                  : "No Share"}
               </ul>
             </div>
             <div className="">
@@ -254,7 +262,7 @@ export default function MinimalistNotepad(): JSX.Element {
                 onClick={() => setIsPopoverOpen(!isPopoverOpen)}
                 aria-label="Add new item"
               >
-              <Plus className="h-4 w-4 text-gray-500" />
+                <Plus className="h-4 w-4 text-gray-500" />
               </button>
               {isPopoverOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-md shadow-lg z-10">
@@ -299,18 +307,21 @@ export default function MinimalistNotepad(): JSX.Element {
                     </p>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
-                    {!userInformation.email ? <Link
-                      className="font-medium hover:text-red-700 w-full text-left"
-                      to={"/sign-in"}
-                    >
-                      Sign-In
-                    </Link> : <button
-                      className="font-medium text-red-600 hover:text-red-700 w-full text-left"
-                      onClick={() => handleSignOut()}
-                    >
-                      Sign-Out
-                    </button>}
-                    
+                    {!userInformation.email ? (
+                      <Link
+                        className="font-medium hover:text-red-700 w-full text-left"
+                        to={"/sign-in"}
+                      >
+                        Sign-In
+                      </Link>
+                    ) : (
+                      <button
+                        className="font-medium text-red-600 hover:text-red-700 w-full text-left"
+                        onClick={() => handleSignOut()}
+                      >
+                        Sign-Out
+                      </button>
+                    )}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-300" />
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
@@ -321,7 +332,9 @@ export default function MinimalistNotepad(): JSX.Element {
 
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <ul>
-                      {shareWith.map((item) =><li>{item}</li> )}
+                      {shareWith.map((item) => (
+                        <li>{item}</li>
+                      ))}
                     </ul>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -384,4 +397,5 @@ export default function MinimalistNotepad(): JSX.Element {
         </div>
       </footer>
     </div>
-  );}
+  );
+}
