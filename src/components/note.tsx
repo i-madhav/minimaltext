@@ -34,9 +34,10 @@ export default function MinimalistNotepad(): JSX.Element {
       await fetchUserInformation();
       if (path) {
         setDocid(path);
-        handleFetchData(path, userInformation.id);
+       await handleFetchData(path, userInformation.id);
+       console.log("I ran fetched Data");
       } else {
-        handleDocumentCreation(userInformation.id);
+       await handleDocumentCreation(userInformation.id);
       }
     };
     checkIfUserIsLoggedIn();
@@ -52,9 +53,9 @@ export default function MinimalistNotepad(): JSX.Element {
       };
       socket.emit("updatedDataFromTheClient", socketData);
 
-      socket.on("serverResponse", (res) => {
-        console.log("Received response:", res);
-      });
+      // socket.on("serverResponse", (res) => {
+      //   console.log("Received response:", res);
+      // });
     }
   }, [text, docid]);
 
