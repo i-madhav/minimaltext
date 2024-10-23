@@ -234,6 +234,7 @@ export default function MinimalistNotepad(): JSX.Element {
     }
   }
 
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <header className="bg-white shadow-sm">

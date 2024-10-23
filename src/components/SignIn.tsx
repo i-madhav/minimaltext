@@ -13,6 +13,7 @@ import {
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Loader from "@/utils/Loader";
 import { Link, useNavigate } from "react-router-dom";
+import { toast, useToast } from "@/hooks/use-toast";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
@@ -41,6 +42,11 @@ export default function SignIn() {
         setPassword("");
         setLoading(false);
         navigate("/");
+      }else{
+        toast({
+          title: "Signed Failed ",
+          description: "You do not have a existing account , please signup to out platform first!!",
+        });
       }
     } catch (error) {
       console.log("Unable to signin user");
