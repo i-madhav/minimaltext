@@ -24,6 +24,13 @@ export default function SignIn() {
 
   async function handleSignIn() {
     try {
+      if(!email || !password){
+        toast({
+          title: "Signed Failed",
+          description: "Fill both the fields",
+        });
+        return;
+      }
       setLoading(true);
       const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/signin", {
         method: "POST",
@@ -43,12 +50,14 @@ export default function SignIn() {
         setLoading(false);
         navigate("/");
       }else{
+        setLoading(false);
         toast({
           title: "Signed Failed ",
-          description: "You do not have a existing account , please signup to out platform first!!",
+          description: "You do not have a existing account , please signup to our platform first!!",
         });
       }
     } catch (error) {
+      setLoading(false);
       console.log("Unable to signin user");
     }
   }
