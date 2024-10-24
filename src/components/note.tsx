@@ -138,6 +138,9 @@ export default function MinimalistNotepad(): JSX.Element {
           });
         }
       } else {
+        console.log("This is userid in non");
+        console.log(userid);
+      
         const response = await fetch(
           "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=NonLoggedInUser",
           {
