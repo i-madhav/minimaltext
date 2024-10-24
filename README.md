@@ -1,1 +1,3 @@
-http://localhost:8000/api/v1/document/fetch?type="LoggedInUser" || "NonLoggedInUser"
+//MINIMALISTIC
+
+--> sharewith error , confirm no content restrict hoga  
