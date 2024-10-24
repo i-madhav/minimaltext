@@ -109,7 +109,8 @@ export default function MinimalistNotepad(): JSX.Element {
 
   async function handleFetchData(docid: string, userid: string) {
     try {
-      if (userid.length > 0) {
+      if (userInformation.id.length > 0) {
+        console.log("This is uerid");
         const response = await fetch(
           "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=LoggedInUser",
           {
