@@ -185,7 +185,7 @@ export default function MinimalistNotepad(): JSX.Element {
         title: "Error Occurred",
         description: "Unable to fetch document",
       });
-      console.log("Unable to fetch document");
+      console.log(error);
       setLoading(false);
     }
   }
