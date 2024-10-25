@@ -143,7 +143,7 @@ export default function MinimalistNotepad(): JSX.Element {
           if (data && !data.data.document) {
             console.log("Into my desired block");
             console.log(data.data.content);
-            setText(data.data.content);
+            setText(data.data?.content);
             setShareWith([]);
           }else{
             setText(data.data.document.content);
