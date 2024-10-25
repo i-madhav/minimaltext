@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus} from "lucide-react";
+import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
 import {
@@ -14,6 +14,7 @@ import {
 import { UserInformation } from "@/utils/interfaces";
 import { useToast } from "@/hooks/use-toast";
 import { HashLoader, PacmanLoader } from "react-spinners";
+import { debounce } from "lodash";
 
 export default function MinimalistNotepad(): JSX.Element {
   const { toast } = useToast();
@@ -51,6 +52,15 @@ export default function MinimalistNotepad(): JSX.Element {
     initializeData();
   }, []);
 
+  const debouncedFetch = useCallback(
+    debounce(async () => {
+      if (docid) {
+        await handleFetchData(docid, userInformation.id);
+      }
+    }, 1000),
+    [docid, userInformation.id]
+  );
+
   useEffect(() => {
     if (docid) {
       const socketData = {
@@ -61,10 +71,15 @@ export default function MinimalistNotepad(): JSX.Element {
       };
       socket.emit("updatedDataFromTheClient", socketData);
 
-     socket.on("serverResponse", (res) => {
-       console.log(res);
-     });
-    }}, [text, docid]);
+      socket.on("serverResponse", (res) => {
+        debouncedFetch();
+      });
+
+      return () => {
+        debouncedFetch.cancel();
+      };
+    }
+  }, [text, docid]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -191,13 +206,16 @@ export default function MinimalistNotepad(): JSX.Element {
 
   async function handleSignOut() {
     setLoading(true);
-    const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/signout", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      credentials: "include",
-    });
+    const response = await fetch(
+      "https://minimalisticbackend.onrender.com/api/v1/user/signout",
+      {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
     if (response.ok) {
       setLoading(false);
       navigate("/sign-in");
@@ -207,11 +225,14 @@ export default function MinimalistNotepad(): JSX.Element {
   const fetchUserInformation = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/me", {
-        method: "GET",
-        headers: { "Content-type": "application/json" },
-        credentials: "include",
-      });
+      const response = await fetch(
+        "https://minimalisticbackend.onrender.com/api/v1/user/me",
+        {
+          method: "GET",
+          headers: { "Content-type": "application/json" },
+          credentials: "include",
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -301,8 +322,11 @@ export default function MinimalistNotepad(): JSX.Element {
             <div>
               <ul className=" flex items-center">
                 {shareWith.length > 0
-                  ? shareWith.map((item , index) => (
-                      <li key={index} className=" bg-black text-white font-bold w-11 py-2 text-center rounded-full mr-[-.5rem] border-white border-[3px]">
+                  ? shareWith.map((item, index) => (
+                      <li
+                        key={index}
+                        className=" bg-black text-white font-bold w-11 py-2 text-center rounded-full mr-[-.5rem] border-white border-[3px]"
+                      >
                         {item?.slice(0, 1).toUpperCase()}
                       </li>
                     ))
@@ -385,7 +409,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <ul>
-                      {shareWith.map((item , index) => (
+                      {shareWith.map((item, index) => (
                         <li key={index}>{item}</li>
                       ))}
                     </ul>
