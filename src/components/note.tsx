@@ -158,7 +158,7 @@ export default function MinimalistNotepad(): JSX.Element {
           console.log(data);
           if (data && !data.data.document){
             setText(data.data.content);
-            setShareWith(data.data.shareWithEmail);
+            setShareWith(data?.data?.shareWithEmail);
           }else{
             setText(data.data.document.content);
             setShareWith(data.data.shareWithEmail);
@@ -276,8 +276,10 @@ export default function MinimalistNotepad(): JSX.Element {
       if (response.ok) {
         setIsPopoverOpen(false);
         const data = await response.json();
-        setShareWith(data.data.sharedWith);
-        setNewItemText(" ");
+        if(data.data.sharedWith.length > 0){
+          setShareWith(data.data.sharedWith);
+          setNewItemText(" ");
+        }
         setIsPopoverOpen(false);
         setLoading(false);
       } else {
