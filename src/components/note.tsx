@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
@@ -13,10 +13,13 @@ import {
 } from "./ui/dropdown-menu";
 import { UserInformation } from "@/utils/interfaces";
 import { useToast } from "@/hooks/use-toast";
+import { HashLoader, PacmanLoader } from "react-spinners";
+import { it } from "node:test";
 
 export default function MinimalistNotepad(): JSX.Element {
   const { toast } = useToast();
   const [text, setText] = useState<string>("");
+  const [loading, setLoading] = useState(false);
   const [docid, setDocid] = useState<string>("");
   const [newItemText, setNewItemText] = useState<string>("");
   const [shareWith, setShareWith] = useState<string[]>([]);
@@ -30,17 +33,23 @@ export default function MinimalistNotepad(): JSX.Element {
 
   useEffect(() => {
     const path = window.location.pathname.slice(1);
-    const checkIfUserIsLoggedIn = async () => {
-      await fetchUserInformation();
-      if (path) {
-        setDocid(path);
-       await handleFetchData(path, userInformation.id);
-       console.log("I ran fetched Data");
-      } else {
-       await handleDocumentCreation(userInformation.id);
+
+    const initializeData = async () => {
+      try {
+        const userData = await fetchUserInformation();
+        const userId = userData?.id || "";
+        if (path) {
+          setDocid(path);
+          await handleFetchData(path, userId);
+        } else {
+          await handleDocumentCreation(userId);
+        }
+      } catch (error) {
+        console.error("Error initializing data:", error);
       }
     };
-    checkIfUserIsLoggedIn();
+
+    initializeData();
   }, []);
 
   useEffect(() => {
@@ -53,9 +62,9 @@ export default function MinimalistNotepad(): JSX.Element {
       };
       socket.emit("updatedDataFromTheClient", socketData);
 
-      // socket.on("serverResponse", (res) => {
-      //   console.log("Received response:", res);
-      // });
+     socket.on("serverResponse", (res) => {
+       setText( res.document.content)
+     });
     }
   }, [text, docid]);
 
@@ -64,6 +73,7 @@ export default function MinimalistNotepad(): JSX.Element {
   async function handleDocumentCreation(userid: string) {
     try {
       if (userid.length > 0) {
+        setLoading(true);
         const response = await fetch(
           "https://minimalisticbackend.onrender.com/api/v1/document/generate",
           {
@@ -78,11 +88,14 @@ export default function MinimalistNotepad(): JSX.Element {
 
         const data = await response.json();
         if (data) {
-          const id = data.data._id;
+          console.log(data);
+          const id = data.data.document._id;
           setDocid(id);
           window.history.pushState({}, "", `/${id}`);
+          setLoading(false);
         }
       } else {
+        setLoading(true);
         const response = await fetch(
           "https://minimalisticbackend.onrender.com/api/v1/document/generate",
           {
@@ -97,23 +110,24 @@ export default function MinimalistNotepad(): JSX.Element {
 
         const data = await response.json();
         if (data) {
-          const id = data.data._id;
+          const id = data.data.document._id;
           setDocid(id);
           window.history.pushState({}, "", `/${id}`);
+          setLoading(false);
         }
       }
     } catch (error) {
+      setLoading(false);
       console.log("Unable to create a document");
     }
   }
 
-  async function handleFetchData(docid: string, userid:string) {
+  async function handleFetchData(docid: string, userid: string) {
     try {
       if (userid.length > 0) {
-        console.log("This is uerid");
-        console.log(userid);
+        setLoading(true);
         const response = await fetch(
-          "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=LoggedInUser",
+          "http://localhost:8000/api/v1/document/fetch?type=LoggedInUser",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -128,21 +142,21 @@ export default function MinimalistNotepad(): JSX.Element {
           const data = await response.json();
           console.log(data);
           if (data) {
-            setText(data.data.content);
-            setShareWith(data.data.sharedWith);
+            setText(data.data.document.content);
+            setShareWith(data.data.shareWithEmail);
           }
+          setLoading(false);
         } else {
           toast({
             title: "Permission Denied",
             description: "You Do not have permission to access",
           });
+          setLoading(false);
         }
       } else {
-        console.log("This is userid in non");
-        console.log(userid);
-      
+        setLoading(true);
         const response = await fetch(
-          "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=NonLoggedInUser",
+          "http://localhost:8000/api/v1/document/fetch?type=NonLoggedInUser",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -152,62 +166,84 @@ export default function MinimalistNotepad(): JSX.Element {
           }
         );
 
-        const data = await response.json();
-        if (data) {
-          setText(data.data.content);
+        if (response.ok) {
+          const data = await response.json();
+          if (data) {
+            setText(data.data.content);
+          }
+          setLoading(false);
+        } else {
+          toast({
+            title: "You do not have permission to access this document",
+            description: "This document is a protected document",
+          });
+          setLoading(false);
+          return;
         }
       }
     } catch (error) {
+      toast({
+        title: "Error Occurred",
+        description: "Unable to fetch document",
+      });
       console.log("Unable to fetch document");
+      setLoading(false);
     }
   }
 
   async function handleSignOut() {
-    console.log("I got clicked");
-    const response = await fetch(
-      "https://minimalisticbackend.onrender.com/api/v1/user/signout",
-      {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        credentials: "include",
-      }
-    );
+    setLoading(true);
+    const response = await fetch("http://localhost:8000/api/v1/user/signout", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      credentials: "include",
+    });
     if (response.ok) {
+      setLoading(false);
       navigate("/sign-in");
     }
   }
 
-  async function fetchUserInformation() {
+  const fetchUserInformation = useCallback(async () => {
     try {
-      const response = await fetch(
-        "https://minimalisticbackend.onrender.com/api/v1/user/me",
-        {
-          method: "GET",
-          headers: { "Content-type": "application/json" },
-          credentials: "include",
-        }
-      );
+      setLoading(true);
+      const response = await fetch("http://localhost:8000/api/v1/user/me", {
+        method: "GET",
+        headers: { "Content-type": "application/json" },
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();
+        console.log("This is data of the user");
+        console.log(data.data._id);
         if (data) {
-          setUserInformation({
-            id: data.data._id || "",
-            email: data.data.email || "",
-            fullName: data.data.fullName || "",
-          });
+          const userData = {
+            id: data.data._id || "ma",
+            email: data.data.email || "ma",
+            fullName: data.data.fullName || "ma",
+          };
+          setUserInformation(userData);
+          setLoading(false);
+          return userData; // Return the user data
         }
+      } else {
+        setLoading(false);
+        return null;
       }
-    } catch (error) {}
-  }
+    } catch (error) {
+      setLoading(false);
+      return null;
+    }
+  }, []);
 
   async function handleAddShareWith() {
     try {
-      console.log("I ran");
+      setLoading(true);
       const response = await fetch(
-        "https://minimalisticbackend.onrender.com/api/v1/document/sharedwith/add",
+        "http://localhost:8000/api/v1/document/sharedwith/add",
         {
           method: "POST",
           headers: { "Content-type": "application/json" },
@@ -225,6 +261,7 @@ export default function MinimalistNotepad(): JSX.Element {
         setShareWith(data.data.sharedWith);
         setNewItemText(" ");
         setIsPopoverOpen(false);
+        setLoading(false);
       } else {
         setNewItemText(" ");
         setIsPopoverOpen(false);
@@ -233,12 +270,13 @@ export default function MinimalistNotepad(): JSX.Element {
           description:
             "Please make sure the user you are adding is a registred user",
         });
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
       console.log("unable to add share with user");
     }
   }
-
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -252,11 +290,21 @@ export default function MinimalistNotepad(): JSX.Element {
           </div>
 
           <div className=" plusandusercontainer md:flex items-center gap-5 hidden">
+            {loading && (
+              <PacmanLoader
+                size={"20px"}
+                color="#000"
+                loading
+                cssOverride={{
+                  marginRight: "80px",
+                }}
+              />
+            )}
             <div>
               <ul className=" flex items-center">
                 {shareWith.length > 0
-                  ? shareWith.map((item) => (
-                      <li className=" bg-black text-white font-bold py-2 px-3 rounded-full mr-[-.5rem] border-white border-[3px]">
+                  ? shareWith.map((item , index) => (
+                      <li key={index} className=" bg-black text-white font-bold w-11 py-2 text-center rounded-full mr-[-.5rem] border-white border-[3px]">
                         {item?.slice(0, 1).toUpperCase()}
                       </li>
                     ))
@@ -339,8 +387,8 @@ export default function MinimalistNotepad(): JSX.Element {
 
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <ul>
-                      {shareWith.map((item) => (
-                        <li>{item}</li>
+                      {shareWith.map((item , index) => (
+                        <li key={index}>{item}</li>
                       ))}
                     </ul>
                   </DropdownMenuItem>
@@ -349,7 +397,8 @@ export default function MinimalistNotepad(): JSX.Element {
             </div>
           </div>
 
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-5">
+            {loading && <HashLoader size={20} color="#000" loading />}
             <DropdownMenu>
               <DropdownMenuTrigger className="bg-black text-white py-1 px-2 rounded-lg font-medium">
                 Open
