@@ -156,7 +156,7 @@ export default function MinimalistNotepad(): JSX.Element {
           const data = await response.json();
           console.log(data);
           if (data) {
-            setText(data.data.document.content);
+            setText(data.data.document.content || data.data.content);
             setShareWith(data.data.shareWithEmail);
           }
           setLoading(false);
@@ -200,7 +200,7 @@ export default function MinimalistNotepad(): JSX.Element {
         title: "Error Occurred",
         description: "Unable to fetch document",
       });
-      console.log("Unable to fetch document");
+      console.log(error);
       setLoading(false);
     }
   }
