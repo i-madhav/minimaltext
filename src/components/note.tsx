@@ -72,6 +72,7 @@ export default function MinimalistNotepad(): JSX.Element {
       socket.emit("updatedDataFromTheClient", socketData);
 
       socket.on("serverResponse", (res) => {
+        console.log(res);
         debouncedFetch();
       });
 
