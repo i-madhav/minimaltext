@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus} from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
 import {
@@ -14,7 +14,6 @@ import {
 import { UserInformation } from "@/utils/interfaces";
 import { useToast } from "@/hooks/use-toast";
 import { HashLoader, PacmanLoader } from "react-spinners";
-import { it } from "node:test";
 
 export default function MinimalistNotepad(): JSX.Element {
   const { toast } = useToast();
@@ -63,10 +62,9 @@ export default function MinimalistNotepad(): JSX.Element {
       socket.emit("updatedDataFromTheClient", socketData);
 
      socket.on("serverResponse", (res) => {
-       setText( res.document.content)
+       console.log(res);
      });
-    }
-  }, [text, docid]);
+    }}, [text, docid]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
