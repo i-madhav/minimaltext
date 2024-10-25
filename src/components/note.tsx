@@ -156,7 +156,7 @@ export default function MinimalistNotepad(): JSX.Element {
           const data = await response.json();
           console.log(data);
           if (data) {
-            setText(data.data.content);
+            //setText(data.data.content);
             setShareWith(data.data.shareWithEmail);
           }
           setLoading(false);
