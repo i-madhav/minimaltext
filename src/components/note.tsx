@@ -89,7 +89,7 @@ export default function MinimalistNotepad(): JSX.Element {
         const data = await response.json();
         if (data) {
           console.log(data);
-          const id = data.data.document._id;
+          const id = data.data._id;
           setDocid(id);
           window.history.pushState({}, "", `/${id}`);
           setLoading(false);
@@ -110,7 +110,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
         const data = await response.json();
         if (data) {
-          const id = data.data.document._id;
+          const id = data.data._id;
           setDocid(id);
           window.history.pushState({}, "", `/${id}`);
           setLoading(false);
