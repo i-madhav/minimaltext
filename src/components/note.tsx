@@ -14,7 +14,6 @@ import {
 import { UserInformation } from "@/utils/interfaces";
 import { useToast } from "@/hooks/use-toast";
 import { HashLoader, PacmanLoader } from "react-spinners";
-import { debounce } from "lodash";
 
 export default function MinimalistNotepad(): JSX.Element {
   const { toast } = useToast();
@@ -52,15 +51,6 @@ export default function MinimalistNotepad(): JSX.Element {
     initializeData();
   }, []);
 
-    const debouncedFetch = useCallback(
-      debounce(async () => {
-        if (docid) {
-          await handleFetchData(docid, userInformation.id);
-        }
-      }, 2000),
-      [docid, userInformation.id]
-    );
-
   useEffect(() => {
     if (docid) {
       const socketData = {
@@ -71,14 +61,9 @@ export default function MinimalistNotepad(): JSX.Element {
       };
       socket.emit("updatedDataFromTheClient", socketData);
 
-    socket.on("serverResponse", (res) => {
-        debouncedFetch();
-    });
-
-    return () => {
-      debouncedFetch.cancel(); 
-    };
-
+     socket.on("serverResponse", (res) => {
+       console.log(res);
+     });
     }}, [text, docid]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
@@ -138,8 +123,6 @@ export default function MinimalistNotepad(): JSX.Element {
   async function handleFetchData(docid: string, userid: string) {
     try {
       if (userid.length > 0) {
-        console.log("This is userid");
-        console.log(userid.length);
         setLoading(true);
         const response = await fetch(
           "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=LoggedInUser",
@@ -156,10 +139,7 @@ export default function MinimalistNotepad(): JSX.Element {
         if (response.ok) {
           const data = await response.json();
           console.log(data);
-          if (data && !data.data.document){
-            setText(data.data.content);
-            setShareWith(data?.data?.shareWithEmail);
-          }else{
+          if (data) {
             setText(data.data.document.content);
             setShareWith(data.data.shareWithEmail);
           }
@@ -276,10 +256,8 @@ export default function MinimalistNotepad(): JSX.Element {
       if (response.ok) {
         setIsPopoverOpen(false);
         const data = await response.json();
-        if(data.data.sharedWith.length > 0){
-          setShareWith(data.data.sharedWith);
-          setNewItemText(" ");
-        }
+        setShareWith(data.data.sharedWith);
+        setNewItemText(" ");
         setIsPopoverOpen(false);
         setLoading(false);
       } else {
