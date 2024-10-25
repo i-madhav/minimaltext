@@ -140,8 +140,13 @@ export default function MinimalistNotepad(): JSX.Element {
           const data = await response.json();
           console.log(data);
           console.log(`This thing ${data}`);
-          if (data) {
-            setText(data.data.document.content || data.data.content);
+          if (data && !data.data.document) {
+            console.log("Into my desired block");
+            console.log(data.data.content);
+            setText(data.data.content);
+            setShareWith([]);
+          }else{
+            setText(data.data.document.content);
             setShareWith(data.data.shareWithEmail);
           }
           setLoading(false);
