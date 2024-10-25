@@ -139,6 +139,7 @@ export default function MinimalistNotepad(): JSX.Element {
         if (response.ok) {
           const data = await response.json();
           console.log(data);
+          console.log(`This thing ${data}`);
           if (data) {
             setText(data.data.document.content);
             setShareWith(data.data.shareWithEmail);
@@ -219,13 +220,13 @@ export default function MinimalistNotepad(): JSX.Element {
         console.log(data.data._id);
         if (data) {
           const userData = {
-            id: data.data._id || "ma",
-            email: data.data.email || "ma",
-            fullName: data.data.fullName || "ma",
+            id: data.data._id || "",
+            email: data.data.email || "",
+            fullName: data.data.fullName || "",
           };
           setUserInformation(userData);
           setLoading(false);
-          return userData; // Return the user data
+          return userData; 
         }
       } else {
         setLoading(false);
