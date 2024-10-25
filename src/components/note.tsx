@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus} from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
 import {
@@ -52,14 +52,14 @@ export default function MinimalistNotepad(): JSX.Element {
     initializeData();
   }, []);
 
-  const debouncedFetch = useCallback(
-    debounce(async () => {
-      if (docid) {
-        await handleFetchData(docid, userInformation.id);
-      }
-    }, 1000),
-    [docid, userInformation.id]
-  );
+    const debouncedFetch = useCallback(
+      debounce(async () => {
+        if (docid) {
+          await handleFetchData(docid, userInformation.id);
+        }
+      }, 2000),
+      [docid, userInformation.id]
+    );
 
   useEffect(() => {
     if (docid) {
@@ -71,16 +71,15 @@ export default function MinimalistNotepad(): JSX.Element {
       };
       socket.emit("updatedDataFromTheClient", socketData);
 
-      socket.on("serverResponse", (res) => {
-        console.log(res);
+    socket.on("serverResponse", (res) => {
         debouncedFetch();
-      });
+    });
 
-      return () => {
-        debouncedFetch.cancel();
-      };
-    }
-  }, [text, docid]);
+    return () => {
+      debouncedFetch.cancel(); 
+    };
+
+    }}, [text, docid]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -139,6 +138,8 @@ export default function MinimalistNotepad(): JSX.Element {
   async function handleFetchData(docid: string, userid: string) {
     try {
       if (userid.length > 0) {
+        console.log("This is userid");
+        console.log(userid.length);
         setLoading(true);
         const response = await fetch(
           "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=LoggedInUser",
@@ -155,8 +156,11 @@ export default function MinimalistNotepad(): JSX.Element {
         if (response.ok) {
           const data = await response.json();
           console.log(data);
-          if (data) {
-            //setText(data.data.content);
+          if (data && !data.data.document){
+            setText(data.data.content);
+            setShareWith(data.data.shareWithEmail);
+          }else{
+            setText(data.data.document.content);
             setShareWith(data.data.shareWithEmail);
           }
           setLoading(false);
@@ -200,23 +204,20 @@ export default function MinimalistNotepad(): JSX.Element {
         title: "Error Occurred",
         description: "Unable to fetch document",
       });
-      console.log(error);
+      console.log("Unable to fetch document");
       setLoading(false);
     }
   }
 
   async function handleSignOut() {
     setLoading(true);
-    const response = await fetch(
-      "https://minimalisticbackend.onrender.com/api/v1/user/signout",
-      {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        credentials: "include",
-      }
-    );
+    const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/signout", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      credentials: "include",
+    });
     if (response.ok) {
       setLoading(false);
       navigate("/sign-in");
@@ -226,14 +227,11 @@ export default function MinimalistNotepad(): JSX.Element {
   const fetchUserInformation = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "https://minimalisticbackend.onrender.com/api/v1/user/me",
-        {
-          method: "GET",
-          headers: { "Content-type": "application/json" },
-          credentials: "include",
-        }
-      );
+      const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/me", {
+        method: "GET",
+        headers: { "Content-type": "application/json" },
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -323,11 +321,8 @@ export default function MinimalistNotepad(): JSX.Element {
             <div>
               <ul className=" flex items-center">
                 {shareWith.length > 0
-                  ? shareWith.map((item, index) => (
-                      <li
-                        key={index}
-                        className=" bg-black text-white font-bold w-11 py-2 text-center rounded-full mr-[-.5rem] border-white border-[3px]"
-                      >
+                  ? shareWith.map((item , index) => (
+                      <li key={index} className=" bg-black text-white font-bold w-11 py-2 text-center rounded-full mr-[-.5rem] border-white border-[3px]">
                         {item?.slice(0, 1).toUpperCase()}
                       </li>
                     ))
@@ -410,7 +405,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <ul>
-                      {shareWith.map((item, index) => (
+                      {shareWith.map((item , index) => (
                         <li key={index}>{item}</li>
                       ))}
                     </ul>
