@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus} from "lucide-react";
+import { Plus } from "lucide-react";
 import pen from "../assests/pen-2-svgrepo-com.svg";
 import socket from "./socket";
 import {
@@ -14,6 +20,7 @@ import {
 import { UserInformation } from "@/utils/interfaces";
 import { useToast } from "@/hooks/use-toast";
 import { HashLoader, PacmanLoader } from "react-spinners";
+import { debounce } from "lodash";
 
 export default function MinimalistNotepad(): JSX.Element {
   const { toast } = useToast();
@@ -29,6 +36,13 @@ export default function MinimalistNotepad(): JSX.Element {
     fullName: "",
   });
   const navigate = useNavigate();
+
+  const textRef = useRef(text);
+  const isTyping = useRef(false);
+
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
 
   useEffect(() => {
     const path = window.location.pathname.slice(1);
@@ -51,20 +65,64 @@ export default function MinimalistNotepad(): JSX.Element {
     initializeData();
   }, []);
 
+  const debouncedEmitUpdate = useCallback(
+    debounce((updatedText) => {
+      if (docid) {
+        const socketData = {
+          id: docid,
+          userid: userInformation.id,
+          content: updatedText,
+          sharedWith: [],
+        };
+        socket.emit("updatedDataFromTheClient", socketData);
+      }
+    }, 500),
+    [docid, userInformation.id]
+  );
+
+  useEffect(() => {
+    debouncedEmitUpdate(text);
+  }, [text, debouncedEmitUpdate]);
+
   useEffect(() => {
     if (docid) {
-      const socketData = {
-        id: docid,
-        userid: userInformation.id,
-        content: text,
-        sharedWith: [],
-      };
-      socket.emit("updatedDataFromTheClient", socketData);
+      socket.emit("joinDocument", docid);
+    }
+  }, [docid]);
 
-     socket.on("serverResponse", (res) => {
-       console.log(res);
-     });
-    }}, [text, docid]);
+  useEffect(() => {
+    const handleServerResponse = (res: any) => {
+      if (res && res.document && docid === res.document._id) {
+        if (res.document.content !== textRef.current) {
+          if (!isTyping.current) {
+            setText(res.document.content);
+          }
+          // Optionally, handle merging of changes
+        }
+      }
+    };
+
+    socket.on("serverResponse", handleServerResponse);
+
+    return () => {
+      socket.off("serverResponse", handleServerResponse);
+    };
+  }, [docid]);
+
+  const handleTextChange = (e: any) => {
+    isTyping.current = true;
+    setText(e.target.value);
+  };
+
+  useEffect(() => {
+    if (isTyping.current) {
+      const typingTimeout = setTimeout(() => {
+        isTyping.current = false;
+      }, 1000);
+
+      return () => clearTimeout(typingTimeout);
+    }
+  }, [text]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -73,7 +131,7 @@ export default function MinimalistNotepad(): JSX.Element {
       if (userid.length > 0) {
         setLoading(true);
         const response = await fetch(
-          "https://minimalisticbackend.onrender.com/api/v1/document/generate",
+          "http://localhost:8000/api/v1/document/generate",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -95,7 +153,7 @@ export default function MinimalistNotepad(): JSX.Element {
       } else {
         setLoading(true);
         const response = await fetch(
-          "https://minimalisticbackend.onrender.com/api/v1/document/generate",
+          "http://localhost:8000/api/v1/document/generate",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -125,7 +183,7 @@ export default function MinimalistNotepad(): JSX.Element {
       if (userid.length > 0) {
         setLoading(true);
         const response = await fetch(
-          "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=LoggedInUser",
+          "http://localhost:8000/api/v1/document/fetch?type=LoggedInUser",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -145,7 +203,7 @@ export default function MinimalistNotepad(): JSX.Element {
             console.log(data.data.content);
             setText(data.data?.content);
             setShareWith([]);
-          }else{
+          } else {
             setText(data.data.document.content);
             setShareWith(data.data.shareWithEmail);
           }
@@ -160,7 +218,7 @@ export default function MinimalistNotepad(): JSX.Element {
       } else {
         setLoading(true);
         const response = await fetch(
-          "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=NonLoggedInUser",
+          "http://localhost:8000/api/v1/document/fetch?type=NonLoggedInUser",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -197,7 +255,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
   async function handleSignOut() {
     setLoading(true);
-    const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/signout", {
+    const response = await fetch("http://localhost:8000/api/v1/user/signout", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -213,7 +271,7 @@ export default function MinimalistNotepad(): JSX.Element {
   const fetchUserInformation = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/me", {
+      const response = await fetch("http://localhost:8000/api/v1/user/me", {
         method: "GET",
         headers: { "Content-type": "application/json" },
         credentials: "include",
@@ -231,7 +289,7 @@ export default function MinimalistNotepad(): JSX.Element {
           };
           setUserInformation(userData);
           setLoading(false);
-          return userData; 
+          return userData;
         }
       } else {
         setLoading(false);
@@ -247,7 +305,7 @@ export default function MinimalistNotepad(): JSX.Element {
     try {
       setLoading(true);
       const response = await fetch(
-        "https://minimalisticbackend.onrender.com/api/v1/document/sharedwith/add",
+        "http://localhost:8000/api/v1/document/sharedwith/add",
         {
           method: "POST",
           headers: { "Content-type": "application/json" },
@@ -307,8 +365,11 @@ export default function MinimalistNotepad(): JSX.Element {
             <div>
               <ul className=" flex items-center">
                 {shareWith.length > 0
-                  ? shareWith.map((item , index) => (
-                      <li key={index} className=" bg-black text-white font-bold w-11 py-2 text-center rounded-full mr-[-.5rem] border-white border-[3px]">
+                  ? shareWith.map((item, index) => (
+                      <li
+                        key={index}
+                        className=" bg-black text-white font-bold w-11 py-2 text-center rounded-full mr-[-.5rem] border-white border-[3px]"
+                      >
                         {item?.slice(0, 1).toUpperCase()}
                       </li>
                     ))
@@ -391,7 +452,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
                   <DropdownMenuItem className="focus:bg-gray-200 focus:bg-opacity-70">
                     <ul>
-                      {shareWith.map((item , index) => (
+                      {shareWith.map((item, index) => (
                         <li key={index}>{item}</li>
                       ))}
                     </ul>
@@ -444,7 +505,10 @@ export default function MinimalistNotepad(): JSX.Element {
         <textarea
           className="flex-grow p-4 bg-white font-mono text-sm focus:outline-none resize-none w-[95%] m-auto border border-black"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            handleTextChange(e);
+          }}
           placeholder="Start typing here..."
           aria-label="Notepad content"
         />
