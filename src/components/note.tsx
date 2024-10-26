@@ -131,7 +131,7 @@ export default function MinimalistNotepad(): JSX.Element {
       if (userid.length > 0) {
         setLoading(true);
         const response = await fetch(
-          "http://localhost:8000/api/v1/document/generate",
+          "https://minimalisticbackend.onrender.com/api/v1/document/generate",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -153,7 +153,7 @@ export default function MinimalistNotepad(): JSX.Element {
       } else {
         setLoading(true);
         const response = await fetch(
-          "http://localhost:8000/api/v1/document/generate",
+          "https://minimalisticbackend.onrender.com/api/v1/document/generate",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -183,7 +183,7 @@ export default function MinimalistNotepad(): JSX.Element {
       if (userid.length > 0) {
         setLoading(true);
         const response = await fetch(
-          "http://localhost:8000/api/v1/document/fetch?type=LoggedInUser",
+          "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=LoggedInUser",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -218,7 +218,7 @@ export default function MinimalistNotepad(): JSX.Element {
       } else {
         setLoading(true);
         const response = await fetch(
-          "http://localhost:8000/api/v1/document/fetch?type=NonLoggedInUser",
+          "https://minimalisticbackend.onrender.com/api/v1/document/fetch?type=NonLoggedInUser",
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -255,7 +255,7 @@ export default function MinimalistNotepad(): JSX.Element {
 
   async function handleSignOut() {
     setLoading(true);
-    const response = await fetch("http://localhost:8000/api/v1/user/signout", {
+    const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/signout", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -271,7 +271,7 @@ export default function MinimalistNotepad(): JSX.Element {
   const fetchUserInformation = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8000/api/v1/user/me", {
+      const response = await fetch("https://minimalisticbackend.onrender.com/api/v1/user/me", {
         method: "GET",
         headers: { "Content-type": "application/json" },
         credentials: "include",
@@ -305,7 +305,7 @@ export default function MinimalistNotepad(): JSX.Element {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:8000/api/v1/document/sharedwith/add",
+        "https://minimalisticbackend.onrender.com/api/v1/document/sharedwith/add",
         {
           method: "POST",
           headers: { "Content-type": "application/json" },
