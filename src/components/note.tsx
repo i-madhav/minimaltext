@@ -509,7 +509,7 @@ export default function MinimalistNotepad(): JSX.Element {
             setText(e.target.value);
             handleTextChange(e);
           }}
-          placeholder="Start typing here..."
+          placeholder="Collaborative Document Sharing Platform: Instantly share documents by copying the URL. Click '+' to add collaborators by email - only existing users can be invited. Features include: 1) Instant URL sharing 2) Granular access control 3) Email-based permissions 4) Secure collaborative workflow. Quickly create, share, and manage document access. Ensure confidentiality by precisely controlling who can view your document."
           aria-label="Notepad content"
         />
       </main>
